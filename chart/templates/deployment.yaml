@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include "{{ .Chart.Name }}.fullname" . }}
+{{ include "{{ .Chart.Name }}.labels" . | indent 2 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+      release: {{ .Release.Name }}
+  replicas: {{ .Values.deployment.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: dockerhub.vilanet.fr/kriss/cloudbox:1.0
+        imagePullPolicy: IfNotPresent
+        name: cloudbox
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 30; done"]
+        volumeMounts:
+        - name: cloudbox
+          mountPath: /mnt/work/dev/volumes/cloudbox
+      volumes:
+      - name: cloudbox
+        hostPath:
+          path: /c/Work/dev/volumes/cloudbox
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
